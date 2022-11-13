@@ -1,0 +1,25 @@
+{
+  "name": "pill",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "author": "Kelley van Evert <hello@klve.nl>",
+  "license": "ISC",
+  "main": "index.js",
+  "prettier": {},
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.9",
+    "@types/three": "^0.146.0",
+    "typescript": "^4.8.4",
+    "vite": "^3.2.3"
+  },
+  "dependencies": {
+    "lil-gui": "^0.17.0",
+    "three": "^0.146.0"
+  }
+}
