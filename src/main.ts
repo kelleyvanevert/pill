@@ -8,6 +8,8 @@ const hdrEquirect = new RGBELoader().load("./rathaus_4k.hdr", () => {
   hdrEquirect.mapping = THREE.EquirectangularReflectionMapping;
 });
 
+const cubeTextureLoader = new THREE.CubeTextureLoader();
+
 const gltfLoader = new GLTFLoader();
 
 const gui = new GUI();
@@ -55,17 +57,6 @@ const cubeMaterial = new THREE.MeshNormalMaterial();
 const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 scene.add(cube);
 
-const pillGeometry = new THREE.CapsuleGeometry(3, 3, 32, 32);
-const pillMaterial = new THREE.MeshPhysicalMaterial({
-  envMap: hdrEquirect,
-  roughness: 0,
-  transmission: 1,
-  // thickness: 2
-});
-const pill = new THREE.Mesh(pillGeometry, pillMaterial);
-// mesh.position.set(0, 0, 0);
-scene.add(pill);
-
 let actualWrench: THREE.Mesh;
 let wrench: THREE.Group;
 
@@ -110,6 +101,54 @@ renderer.setPixelRatio(window.devicePixelRatio ?? 1);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x000000);
 
+const pmremGenerator = new THREE.PMREMGenerator(renderer);
+
+const pillGeometry = new THREE.CapsuleGeometry(3, 3, 32, 32);
+
+const pillMaterial = new THREE.MeshPhysicalMaterial({
+  envMap: hdrEquirect,
+  transparent: true,
+  roughness: 0,
+  metalness: 0,
+  clearcoat: 0.3,
+  clearcoatRoughness: 0.25,
+  transmission: 1,
+  ior: 1.2,
+  // thickness: 2
+});
+
+const pill = new THREE.Mesh(pillGeometry, pillMaterial);
+scene.add(pill);
+
+const textureCube = cubeTextureLoader.load(
+  [
+    "./space/w6-sq.jpg",
+    "./space/w6-sq.jpg",
+    "./space/w6-sq.jpg",
+    "./space/w6-sq.jpg",
+    "./space/w6-sq.jpg",
+    "./space/w6-sq.jpg",
+  ],
+  () => {
+    // const material = new THREE.MeshPhysicalMaterial({})
+    // material.reflectivity = 0
+    // material.transmission = 1.0
+    // material.roughness = 0.2
+    // material.metalness = 0
+    // material.clearcoat = 0.3
+    // material.clearcoatRoughness = 0.25
+    // material.color = new THREE.Color(0xffffff)
+    // material.ior = 1.2
+    // material.thickness = 10.0
+
+    // mesh.position.set(0, 0, 0);
+
+    pillMaterial.envMap = pmremGenerator.fromCubemap(textureCube).texture;
+    pmremGenerator.dispose();
+    // scene.background = pillMaterial.envMap;
+  }
+);
+
 document.body.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -118,10 +157,6 @@ controls.update();
 // animation
 
 renderer.setAnimationLoop((time) => {
-  pill.rotation.x = config.rotationX;
-  pill.rotation.x = config.rotationY;
-  pill.rotation.z = config.rotationZ;
-
   cube.rotation.x = config.boxRotX;
   cube.rotation.x = config.boxRotY;
   cube.rotation.z = config.boxRotZ;
@@ -138,7 +173,11 @@ renderer.setAnimationLoop((time) => {
 
   controls.update();
 
-  pillMaterial.thickness = config.pillThickness;
+  pill.rotation.x = config.rotationX;
+  pill.rotation.x = config.rotationY;
+  pill.rotation.z = config.rotationZ;
+
+  (pill.material as any).thickness = config.pillThickness;
   pill.visible = config.showPill;
 
   renderer.render(scene, camera);
