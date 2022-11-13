@@ -1,16 +1,8 @@
 import * as THREE from "three";
 import GUI from "lil-gui";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-// import { OrbitControls } from "three/examples/jsm/controls/Trans";
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { Vector2 } from "three";
-
-const hdrEquirect = new RGBELoader().load("./rathaus_4k.hdr", () => {
-  hdrEquirect.mapping = THREE.EquirectangularReflectionMapping;
-});
-
-const gltfLoader = new GLTFLoader();
+import { CubeTextureLoader } from "three";
 
 const gui = new GUI();
 
@@ -36,7 +28,7 @@ let actualWrench: THREE.Mesh;
 const wrench = new THREE.Group();
 scene.add(wrench);
 
-gltfLoader.load(
+new GLTFLoader().load(
   "./combination_wrench_cleandirty.glb",
   (gltf) => {
     let addScene = gltf.scene ?? gltf.scenes[0];
@@ -69,7 +61,7 @@ gltfLoader.load(
   }
 );
 
-const cubeMap = new THREE.CubeTextureLoader().load(
+new THREE.CubeTextureLoader().load(
   [
     "./space/hdr/crab/cube/px.png",
     "./space/hdr/crab/cube/nx.png",
@@ -78,9 +70,7 @@ const cubeMap = new THREE.CubeTextureLoader().load(
     "./space/hdr/crab/cube/pz.png",
     "./space/hdr/crab/cube/nz.png",
   ],
-  () => {
-    cubeMap.rotation = 2;
-
+  (cubeMap) => {
     // 1
     // const texture = pmremGenerator.fromCubemap(cubeMap).texture;
     // texture.mapping = THREE.EquirectangularReflectionMapping;
@@ -97,12 +87,17 @@ renderer.setPixelRatio(window.devicePixelRatio ?? 1);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x000000);
 
-const pmremGenerator = new THREE.PMREMGenerator(renderer);
-
 const pillGeometry = new THREE.CapsuleGeometry(3, 3, 32, 32);
 
 const pillMaterial = new THREE.MeshPhysicalMaterial({
-  envMap: hdrEquirect,
+  envMap: new CubeTextureLoader().load([
+    "./space/w6-sq.jpg",
+    "./space/w6-sq.jpg",
+    "./space/w6-sq.jpg",
+    "./space/w6-sq.jpg",
+    "./space/w6-sq.jpg",
+    "./space/w6-sq.jpg",
+  ]),
   transparent: true,
   roughness: 0,
   metalness: 0,
