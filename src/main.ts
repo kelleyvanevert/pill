@@ -14,7 +14,25 @@ const camera = new THREE.PerspectiveCamera(
   0.01,
   1000
 );
-camera.position.z = 20;
+camera.position.set(-2, 5, -14);
+
+const cameraFolder = gui.addFolder("Camera");
+
+cameraFolder.add(
+  {
+    Randomize() {
+      let x = Math.random();
+      let y = Math.random();
+      let z = Math.random();
+      const len = Math.sqrt(x ** 2 + y ** 2 + z ** 2);
+      const scale = 15 / len;
+      camera.position.set(x * scale, y * scale, z * scale);
+    },
+  },
+  "Randomize"
+);
+
+(window as any).camera = camera;
 
 const scene = new THREE.Scene();
 
@@ -45,7 +63,6 @@ new GLTFLoader().load(
     const box = new THREE.Box3().setFromObject(mesh);
     const size = box.getSize(new THREE.Vector3()).length();
     const center = box.getCenter(new THREE.Vector3());
-    console.log(size, center);
 
     // scene.add(mesh);
 
@@ -53,7 +70,7 @@ new GLTFLoader().load(
     camera.lookAt(gltf.scene.position); //add this line
   },
   (xhr) => {
-    console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+    // console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
   },
   (error) => {
     console.error("An error happened");
@@ -82,9 +99,9 @@ new THREE.CubeTextureLoader().load(
   }
 );
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(window.devicePixelRatio ?? 1);
-renderer.setSize(window.innerWidth, window.innerHeight);
+const canvas = document.querySelector("#c")!;
+const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+// renderer.setPixelRatio(window.devicePixelRatio ?? 1);
 renderer.setClearColor(0x000000);
 
 const pillGeometry = new THREE.CapsuleGeometry(3, 3, 32, 32);
@@ -109,6 +126,7 @@ const pill = new THREE.Mesh(pillGeometry, pillMaterial);
 scene.add(pill);
 
 const pillFolder = gui.addFolder("Pill");
+pillFolder.close();
 
 pillFolder.add(pill, "visible");
 
@@ -121,8 +139,8 @@ pillFolder.add(pillMaterial, "ior", 0, 2);
 pillMaterial.reflectivity = 0.33;
 pillFolder.add(pillMaterial, "reflectivity", 0, 2);
 
-pillMaterial.thickness = 2.66;
-pillFolder.add(pillMaterial, "thickness", 0, 5);
+pillMaterial.thickness = 4.06;
+pillFolder.add(pillMaterial, "thickness", 0, 7);
 
 pill.rotation.x = 2.79;
 pillFolder.add(pill.rotation, "x", 0, Math.PI);
@@ -139,21 +157,24 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.update();
 
 const cubeFolder = gui.addFolder("Cube");
+cubeFolder.close();
 
-cube.visible = false;
+cube.visible = true;
 cubeFolder.add(cube, "visible");
 
-cube.rotation.x = 2.79;
+cube.rotation.x = 2.177;
 cubeFolder.add(cube.rotation, "x", 0, Math.PI);
 
-cube.rotation.y = 0.24;
+cube.rotation.y = 0.128;
 cubeFolder.add(cube.rotation, "y", 0, Math.PI);
 
-cube.rotation.z = 1.2;
+cube.rotation.z = 1055;
 cubeFolder.add(cube.rotation, "z", 0, Math.PI);
 
 const wrenchFolder = gui.addFolder("Wrench");
+wrenchFolder.close();
 
+wrench.visible = false;
 wrenchFolder.add(wrench, "visible");
 
 wrench.rotation.x = 2.79;
@@ -174,9 +195,25 @@ wrench.position.y = -0.318;
 wrench.position.z = -1.056;
 // wrenchFolder.add(wrench.position, "z", -3, 3);
 
-// animation
+function resizeRendererToDisplaySize() {
+  const canvas = renderer.domElement;
+  const pixelRatio = window.devicePixelRatio;
+  const width = (canvas.clientWidth * pixelRatio) | 0;
+  const height = (canvas.clientHeight * pixelRatio) | 0;
+  const needResize = canvas.width !== width || canvas.height !== height;
+  if (needResize) {
+    renderer.setSize(width, height, false);
+  }
+  return needResize;
+}
 
 renderer.setAnimationLoop((time) => {
+  if (resizeRendererToDisplaySize()) {
+    const canvas = renderer.domElement;
+    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    camera.updateProjectionMatrix();
+  }
+
   controls.update();
   renderer.render(scene, camera);
 });
